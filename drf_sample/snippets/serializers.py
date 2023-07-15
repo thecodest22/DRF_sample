@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from .models import Snippet, LANGUAGE_CHOICES, STYLE_CHOICES
@@ -16,12 +17,24 @@ from .models import Snippet, LANGUAGE_CHOICES, STYLE_CHOICES
     #
     # def update(self, instance, validated_data):
     #     for i_attr in ('title', 'code', 'linenos', 'language', 'style'):
-    #         setattr(instance, i_attr, validated_data.get('title', getattr(instance, i_attr)))
+    #         setattr(instance, i_attr, validated_data.get(i_attr, getattr(instance, i_attr)))
     #
     #     instance.save()
     #     return instance
 
+
 class SnippetSerializer(serializers.ModelSerializer):
+    owner = serializers.ReadOnlyField(source='owner.username')
+
     class Meta:
         model = Snippet
-        fields = ['id', 'title', 'code', 'linenos', 'language', 'style']
+        fields = ['title', 'code', 'highlighted', 'linenos', 'language', 'style', 'owner']
+
+
+class UserSerializer(serializers.ModelSerializer):
+    snippets = serializers.PrimaryKeyRelatedField(many=True, queryset=Snippet.objects.all())
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'snippets']
+
